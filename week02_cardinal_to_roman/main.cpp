@@ -1,45 +1,39 @@
 #include <iostream>
 #include <map>
-#include <cstdlib> // for exit()
-using namespace std;
+#include <conio.h>
+#include <stdio.h>
 
-int romanToInt(string s) {
-    map<char, int> romanToIntMap;
-    romanToIntMap['I'] = 1;
-    romanToIntMap['V'] = 5;
-    romanToIntMap['X'] = 10;
-    romanToIntMap['L'] = 50;
-    romanToIntMap['C'] = 100;
-    romanToIntMap['D'] = 500;
-    romanToIntMap['M'] = 1000;
-
+int romanToInteger(std::string s) {
+    std::map<char, int> romanMap = { {'I', 1}, {'V', 5}, {'X', 10}, {'L', 50}, {'C', 100}, {'D', 500}, {'M', 1000} };
     int result = 0;
+
     for (int i = 0; i < s.length(); i++) {
-        if (i > 0 && romanToIntMap[s[i]] > romanToIntMap[s[i - 1]]) {
-            result += romanToIntMap[s[i]] - 2 * romanToIntMap[s[i - 1]];
+        if (i > 0 && romanMap[s[i]] > romanMap[s[i - 1]]) {
+            result += romanMap[s[i]] - 2 * romanMap[s[i - 1]];
         }
         else {
-            result += romanToIntMap[s[i]];
+            result += romanMap[s[i]];
         }
     }
+
     return result;
 }
 
 int main() {
-    string romanNumeral;
+    std::string roman;
+    std::cout << "로마 숫자를 입력하세요. Esc키를 누르면 종료됩니다." << std::endl;
+
     while (true) {
-        cout << "Enter a Roman numeral (x to quit): ";
-        cin >> romanNumeral;
-        if (romanNumeral == "x") {
-            exit(0);
+        if (_kbhit()) {
+            char ch = _getch();
+            if (ch == 27) {
+                std::cout << "프로그램을 종료합니다." << std::endl;
+                return 0;
+            }
         }
-        int result = romanToInt(romanNumeral);
-        if (result == 0) {
-            cout << "Invalid Roman numeral" << endl;
-        }
-        else {
-            cout << "The integer value of " << romanNumeral << " is " << result << endl;
-        }
+
+        std::cin >> roman;
+        int result = romanToInteger(roman);
+        std::cout << "정수로 변환된 값은 " << result << "입니다." << std::endl;
     }
-    return 0;
 }
