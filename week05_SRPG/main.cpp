@@ -4,19 +4,19 @@
 using namespace std;
 
 const int MAP_SIZE = 5;
-const int PLAYER_ROW = 4;
-const int PLAYER_COL = 0;
-const int GOAL_ROW = 4;
-const int GOAL_COL = 4;
+const int PLAYER_x = 4;
+const int PLAYER_y = 0;
+const int GOAL_x = 4;
+const int GOAL_y = 4;
 
-int gogo[MAP_SIZE][MAP_SIZE];  // 최단거리 저장 배열
+int shortest[MAP_SIZE][MAP_SIZE];  // 최단거리 저장 배열
 int dx[4] = { -1, 0, 1, 0 };  // 상하좌우 이동을 위한 배열
 int dy[4] = { 0, 1, 0, -1 };
 
 void bfs(char map[][MAP_SIZE], int row, int col) {
     queue<pair<int, int>> q;
     q.push(make_pair(row, col));
-    gogo[row][col] = 0;
+    shortest[row][col] = 0;
 
     while (!q.empty()) {
         int x = q.front().first;
@@ -29,10 +29,10 @@ void bfs(char map[][MAP_SIZE], int row, int col) {
 
             if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
             if (map[nx][ny] == '#') continue;
-            if (gogo[nx][ny] != -1) continue;
+            if (shortest[nx][ny] != -1) continue;
 
             q.push(make_pair(nx, ny));
-            gogo[nx][ny] = gogo[x][y] + 1;
+            shortest[nx][ny] = shortest[x][y] + 1;
         }
     }
 
@@ -48,8 +48,8 @@ int main() {
     }
 
     // 플레이어와 목적지 설정
-    map[PLAYER_ROW][PLAYER_COL] = 'P';
-    map[GOAL_ROW][GOAL_COL] = 'G';
+    map[PLAYER_x][PLAYER_y] = 'P';
+    map[GOAL_x][GOAL_y] = 'G';
 
     // 장애물 추가
     int num_obstacles;
@@ -77,20 +77,20 @@ int main() {
     }
 
     // 최단경로 구하기
-    memset(gogo, -1, sizeof(gogo));
-    bfs(map, PLAYER_ROW, PLAYER_COL);
+    memset(shortest, -1, sizeof(shortest));
+    bfs(map, PLAYER_x, PLAYER_y);
 
     // 최단경로에 해당하는 지점 'o'로 표시하기
-    int x = GOAL_ROW;
-    int y = GOAL_COL;
-    while (gogo[x][y] != 0) {
+    int x = GOAL_x;
+    int y = GOAL_y;
+    while (shortest[x][y] != 0) {
         for (int i = 0; i < 4; i++) {
             int nx = x + dx[i];
             int ny = y + dy[i];
 
             if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
-            if (gogo[nx][ny] == -1) continue;
-            if (gogo[nx][ny] >= gogo[x][y]) continue;
+            if (shortest[nx][ny] == -1) continue;
+            if (shortest[nx][ny] >= shortest[x][y]) continue;
 
             x = nx;
             y = ny;
