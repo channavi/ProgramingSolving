@@ -1,150 +1,110 @@
-#include <stdio.h>
 #include <iostream>
-#include <array>
-#include <string>
 #include <queue>
 
 using namespace std;
 
-char map[10][21] = {
-    "1111111111111111111",
-    "1000000000000000001",
-    "1000000000000000001",
-    "1000011111111000001",
-    "1000010000001000001",
-    "10000100110q1000001",
-    "1000010011111000001",
-    "1000010000000000001",
-    "1s00010000000000001",
-    "1111111111111111111"
-};
+const int MAP_SIZE = 5;
+const int PLAYER_ROW = 4;
+const int PLAYER_COL = 0;
+const int GOAL_ROW = 4;
+const int GOAL_COL = 4;
 
-void drawMap() {
-    int h, w;
+int gogo[MAP_SIZE][MAP_SIZE];  // 최단거리 저장 배열
+int dx[4] = { -1, 0, 1, 0 };  // 상하좌우 이동을 위한 배열
+int dy[4] = { 0, 1, 0, -1 };
 
-    for (h = 0; h < 10; h++) {
-        for (w = 0; w < 20; w++) {
-            char temp = map[h][w];
-            if (temp == '0') {
-                printf(" ");
-            }
-            else if (temp == '1') {
-                printf("#");
-            }
-            else if (temp == 's') {
-                printf("@");
-            }
-            else if (temp == 'q') {
-                printf("O");
-            }
+void bfs(char map[][MAP_SIZE], int row, int col) {
+    queue<pair<int, int>> q;
+    q.push(make_pair(row, col));
+    gogo[row][col] = 0;
+
+    while (!q.empty()) {
+        int x = q.front().first;
+        int y = q.front().second;
+        q.pop();
+
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+
+            if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
+            if (map[nx][ny] == '#') continue;
+            if (gogo[nx][ny] != -1) continue;
+
+            q.push(make_pair(nx, ny));
+            gogo[nx][ny] = gogo[x][y] + 1;
         }
-        printf("\n");
     }
+
 }
 
-struct Node {
-    Node() : depth(0), isVisited(false), isTarget(false), adjacent{} {}
-    int depth;
-    bool isVisited;
-    bool isTarget;
-    array<Node*, 4> adjacent;
-};
-
-using NodeMap = array<array < Node*, 100>, 100>;
-
 int main() {
-    drawMap();
-
-    // Initialize the node map
-    NodeMap nodeMap{};
-
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 20; ++col) {
-            if (map[row][col] != '1') {
-                nodeMap[row][col] = new Node();
-            }
+    // 맵 초기화
+    char map[MAP_SIZE][MAP_SIZE];
+    for (int i = 0; i < MAP_SIZE; i++) {
+        for (int j = 0; j < MAP_SIZE; j++) {
+            map[i][j] = '-';
         }
     }
 
-    // Set the adjacent nodes for each node
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 20; ++col) {
-            Node* currentNode = nodeMap[row][col];
+    // 플레이어와 목적지 설정
+    map[PLAYER_ROW][PLAYER_COL] = 'P';
+    map[GOAL_ROW][GOAL_COL] = 'G';
 
-            if (currentNode != nullptr) {
-                if (row > 0 && nodeMap[row - 1][col] != nullptr) {
-                    currentNode->adjacent[0] = nodeMap[row - 1][col];
-                }
+    // 장애물 추가
+    int num_obstacles;
+    cout << "장애물의 개수를 입력하세요: ";
+    cin >> num_obstacles;
 
-                if (col > 0 && nodeMap[row][col - 1] != nullptr) {
-                    currentNode->adjacent[1] = nodeMap[row][col - 1];
-                }
+    for (int i = 0; i < num_obstacles; i++) {
+        int row, col;
+        cout << i + 1 << "번째 장애물의 위치를 입력하세요 (예: 2 3): ";
+        cin >> row >> col;
 
-                if (col < 19 && nodeMap[row][col + 1] != nullptr) {
-                    currentNode->adjacent[2] = nodeMap[row][col + 1];
-                }
-
-                if (row < 9 && nodeMap[row + 1][col] != nullptr) {
-                    currentNode->adjacent[3] = nodeMap[row + 1][col];
-                }
-            }
-        }
-    }
-
-    // Set the target node
-    Node* targetNode = nullptr;
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 20; ++col) {
-            if (map[row][col] == 'q') {
-                targetNode = nodeMap[row][col];
-                targetNode->isTarget = true;
-                break;
-            }
-        }
-    }
-    // Set the start node
-    Node* startNode = nullptr;
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 20; ++col) {
-            if (map[row][col] == 's') {
-                startNode = nodeMap[row][col];
-                break;
-            }
-        }
-    }
-
-    // Traverse the nodes using BFS algorithm and find the shortest path
-    queue<Node*> nodeQueue;
-    nodeQueue.push(startNode);
-
-    while (!nodeQueue.empty()) {
-        Node* currentNode = nodeQueue.front();
-        nodeQueue.pop();
-
-        if (currentNode->isVisited) {
+        if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+            cout << "잘못된 위치입니다." << endl;
+            i--;
             continue;
         }
 
-        currentNode->isVisited = true;
-
-        if (currentNode->isTarget) {
-            cout << "The shortest path has length " << currentNode->depth << endl;
-            break;
+        if (map[row][col] != '-') {
+            cout << "이미 다른 객체가 위치해 있습니다." << endl;
+            i--;
+            continue;
         }
 
-        for (auto adj : currentNode->adjacent) {
-            if (adj != nullptr && !adj->isVisited) {
-                adj->depth = currentNode->depth + 1;
-                nodeQueue.push(adj);
-            }
-        }
+        map[row][col] = '#';
     }
 
-    // Free the allocated memory for nodes
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 20; ++col) {
-            delete nodeMap[row][col];
+    // 최단경로 구하기
+    memset(gogo, -1, sizeof(gogo));
+    bfs(map, PLAYER_ROW, PLAYER_COL);
+
+    // 최단경로에 해당하는 지점 'o'로 표시하기
+    int x = GOAL_ROW;
+    int y = GOAL_COL;
+    while (gogo[x][y] != 0) {
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+
+            if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
+            if (gogo[nx][ny] == -1) continue;
+            if (gogo[nx][ny] >= gogo[x][y]) continue;
+
+            x = nx;
+            y = ny;
+            if (map[x][y] != 'P' && map[x][y] != 'G') // P와 G는 표시하지 않음
+                map[x][y] = 'o';
+            break;
         }
+    }
+    // 맵 출력
+    for (int i = 0; i < MAP_SIZE; i++) {
+        for (int j = 0; j < MAP_SIZE; j++) {
+            cout << map[i][j] << " ";
+        }
+        cout << endl;
     }
 
     return 0;

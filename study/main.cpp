@@ -1,77 +1,110 @@
 #include <iostream>
 #include <queue>
-#include <cstring>
 
 using namespace std;
 
-const int MAXN = 1000;
-const int INF = 987654321;
+const int MAP_SIZE = 5;
+const int PLAYER_ROW = 4;
+const int PLAYER_COL = 0;
+const int GOAL_ROW = 4;
+const int GOAL_COL = 4;
 
-int N, M; // 맵의 크기
-int Map[MAXN][MAXN]; // 맵
-int dist[MAXN][MAXN]; // 시작점으로부터의 최단거리
-bool visited[MAXN][MAXN]; // 방문 여부
+int gogo[MAP_SIZE][MAP_SIZE];  // 최단거리 저장 배열
+int dx[4] = { -1, 0, 1, 0 };  // 상하좌우 이동을 위한 배열
+int dy[4] = { 0, 1, 0, -1 };
 
-struct Coord {
-    int x, y;
-};
-
-Coord start; // 시작점 좌표
-Coord end; // 목표지점 좌표
-
-// 인접한 셀을 확인하여 방문하지 않았고 이동 가능한 경우 큐에 추가합니다.
-void bfs(int x, int y) {
-    queue<Coord> q;
-    q.push({ x, y });
-    visited[x][y] = true;
-    dist[x][y] = 0;
+void bfs(char map[][MAP_SIZE], int row, int col) {
+    queue<pair<int, int>> q;
+    q.push(make_pair(row, col));
+    gogo[row][col] = 0;
 
     while (!q.empty()) {
-        Coord cur = q.front();
+        int x = q.front().first;
+        int y = q.front().second;
         q.pop();
 
-        int dx[4] = { 1, -1, 0, 0 };
-        int dy[4] = { 0, 0, 1, -1 };
-
         for (int i = 0; i < 4; i++) {
-            int nx = cur.x + dx[i];
-            int ny = cur.y + dy[i];
+            int nx = x + dx[i];
+            int ny = y + dy[i];
 
-            if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
-            if (Map[nx][ny] == 0 || visited[nx][ny]) continue;
+            if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
+            if (map[nx][ny] == '#') continue;
+            if (gogo[nx][ny] != -1) continue;
 
-            visited[nx][ny] = true;
-            dist[nx][ny] = dist[cur.x][cur.y] + 1;
-            q.push({ nx, ny });
+            q.push(make_pair(nx, ny));
+            gogo[nx][ny] = gogo[x][y] + 1;
         }
     }
+
 }
 
 int main() {
-    cin >> N >> M;
-
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < M; j++) {
-            cin >> Map[i][j];
-            dist[i][j] = INF;
-            visited[i][j] = false;
-
-            if (Map[i][j] == 2) {
-                start = { i, j };
-            }
-            else if (Map[i][j] == 3) {
-                end = { i, j };
-            }
+    // 맵 초기화
+    char map[MAP_SIZE][MAP_SIZE];
+    for (int i = 0; i < MAP_SIZE; i++) {
+        for (int j = 0; j < MAP_SIZE; j++) {
+            map[i][j] = '-';
         }
     }
 
-    bfs(start.x, start.y);
+    // 플레이어와 목적지 설정
+    map[PLAYER_ROW][PLAYER_COL] = 'P';
+    map[GOAL_ROW][GOAL_COL] = 'G';
 
-    if (dist[end.x][end.y] == INF) {
-        cout << "목표 지점에 도달할 수 없습니다." << endl;
+    // 장애물 추가
+    int num_obstacles;
+    cout << "장애물의 개수를 입력하세요: ";
+    cin >> num_obstacles;
+
+    for (int i = 0; i < num_obstacles; i++) {
+        int row, col;
+        cout << i + 1 << "번째 장애물의 위치를 입력하세요 (예: 2 3): ";
+        cin >> row >> col;
+
+        if (row < 0 || row >= MAP_SIZE || col < 0 || col >= MAP_SIZE) {
+            cout << "잘못된 위치입니다." << endl;
+            i--;
+            continue;
+        }
+
+        if (map[row][col] != '-') {
+            cout << "이미 다른 객체가 위치해 있습니다." << endl;
+            i--;
+            continue;
+        }
+
+        map[row][col] = '#';
     }
-    else {
-        cout << "목표 지점까지의 최단 거리는 " << dist[end.x][end.y] << "입니다." << endl;
+
+    // 최단경로 구하기
+    memset(gogo, -1, sizeof(gogo));
+    bfs(map, PLAYER_ROW, PLAYER_COL);
+
+    // 최단경로에 해당하는 지점 'o'로 표시하기
+    int x = GOAL_ROW;
+    int y = GOAL_COL;
+    while (gogo[x][y] != 0) {
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+
+            if (nx < 0 || nx >= MAP_SIZE || ny < 0 || ny >= MAP_SIZE) continue;
+            if (gogo[nx][ny] == -1) continue;
+            if (gogo[nx][ny] >= gogo[x][y]) continue;
+
+            x = nx;
+            y = ny;
+            if (map[x][y] != 'P' && map[x][y] != 'G') // P와 G는 표시하지 않음
+                map[x][y] = 'o';
+            break;
+        }
+    }
+    // 맵 출력
+    for (int i = 0; i < MAP_SIZE; i++) {
+        for (int j = 0; j < MAP_SIZE; j++) {
+            cout << map[i][j] << " ";
+        }
+        cout << endl;
     }
 
     return 0;
