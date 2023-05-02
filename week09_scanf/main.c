@@ -16,7 +16,7 @@ int my_scanf(const char* ap_format, void* ap_data)
 		case 'c':
 			*(char*)ap_data = temp_char; //입력한 문자열 저장
 			break;
-		case 'h': case 'd':
+		case 'f': case 'd':
 			if (temp_char == '-') { //음수인지 확인
 				flag = -1;
 				temp_char = '0';
@@ -31,9 +31,12 @@ int my_scanf(const char* ap_format, void* ap_data)
 				num = num * 10 + temp_char - '0';
 				temp_char = getc(stdin);
 			}
-			//'h'면 short로 'd'면 int로 값을 대입한다.
-			if (*ap_format == 'h') *(short*)ap_data = num * flag;
+			//'f'면 float로 'd'면 int로 값을 대입한다.
+			if (*ap_format == 'f') *(float*)ap_data = num * flag;
 			else *(int*)ap_data = num * flag;
+			break;
+		case 's':
+			*(char*)ap_data = temp_char;
 			break;
 		}
 
@@ -44,13 +47,15 @@ int my_scanf(const char* ap_format, void* ap_data)
 int main()
 {
 	char c_data;
-	short h_data;
+	float f_data;
 	int i_data;
-
+	char s_data[1024];
+	printf("문자, 소수, 정수, 문자열 순으로 입력하시오");
 	my_scanf("%c", &c_data);
-	my_scanf("%h", &h_data);
+	my_scanf("%f", &f_data);
 	my_scanf("%d", &i_data);
+	my_scanf("%s", &s_data);
 
-	printf("[input] : %c, %h, %d\n", c_data, h_data, i_data);
+	printf("[input] : %c, %f, %d, %s\n", c_data, f_data, i_data, s_data);
 	return 0;
 }
