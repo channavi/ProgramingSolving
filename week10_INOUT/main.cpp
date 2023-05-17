@@ -12,10 +12,10 @@ int main() {
 
         std::string word;
         while (file >> word) { // 파일에서 한 단어씩 읽어옵니다.
-            if (isdigit(word[100])) {
+            if (isdigit(word[0])) {
                 intCount++;
             }
-            else if (isalpha(word[100])) {
+            else if (isalpha(word[0])) {
                 if (word.size() == 1)
                     charCount++;
                 else
