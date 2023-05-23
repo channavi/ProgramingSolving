@@ -1,37 +1,52 @@
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <stdio.h>
+#include <ctype.h>
 
 int main() {
-    std::ifstream file("C:/Users/tuop/test.txt"); // 읽어올 파일의 경로와 이름을 지정합니다.
+    FILE* file;
+    char filename[] = "test.txt";
+    char c;
+    int charCount = 0;
+    int intCount = 0;
+    int stringCount = 0;
+    int inWord = 0;
 
-    if (file.is_open()) {
-        int intCount = 0;
-        int charCount = 0;
-        int stringCount = 0;
+    // 파일 열기
+    file = fopen(filename, "r");
 
-        std::string word;
-        while (file >> word) { // 파일에서 한 단어씩 읽어옵니다.
-            if (isdigit(word[0])) {
-                intCount++;
-            }
-            else if (isalpha(word[0])) {
-                if (word.size() == 1)
-                    charCount++;
-                else
-                    stringCount++;
+    if (file == NULL) {
+        printf("파일을 열 수 없습니다.\n");
+        return 1;
+    }
+
+    // 파일 내용 분석
+    while ((c = fgetc(file)) != EOF) {
+        if (isalpha(c)) {
+            charCount++;
+            if (!inWord) {
+                inWord = 1;
+                stringCount++;
             }
         }
-
-        file.close(); // 파일을 닫습니다.
-
-        std::cout << "Int 개수: " << intCount << std::endl;
-        std::cout << "Char 개수: " << charCount << std::endl;
-        std::cout << "String 개수: " << stringCount << std::endl;
+        else if (isdigit(c)) {
+            intCount++;
+            if (!inWord) {
+                inWord = 1;
+                stringCount++;
+            }
+        }
+        else {
+            inWord = 0;
+        }
     }
-    else {
-        std::cout << "파일을 열 수 없습니다." << std::endl;
-    }
+
+    // 파일 닫기
+    fclose(file);
+
+    // 결과 출력
+    printf("파일 내용:\n");
+    printf("char 형태: %d\n", charCount);
+    printf("int 형태: %d\n", intCount);
+    printf("string 형태: %d\n", stringCount);
 
     return 0;
 }
